@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-source <(curl -fsSL https://raw.githubusercontent.com/community-scripts/ProxmoxVE/main/misc/build.func)
+source <(curl -fsSL https://raw.githubusercontent.com/alex9978/ProxmoxVE/add-migajas/misc/build.func)
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: ultimoistante (ultimoistante)
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
@@ -13,6 +13,9 @@ var_disk="${var_disk:-10}"
 var_os="${var_os:-debian}"
 var_version="${var_version:-13}"
 var_unprivileged="${var_unprivileged:-1}"
+
+# Override: point install script to our fork instead of community-scripts
+INSTALL_SCRIPT_URL="https://raw.githubusercontent.com/alex9978/ProxmoxVE/add-migajas/install/migajas-install.sh"
 
 header_info "$APP"
 variables
@@ -78,6 +81,8 @@ function update_script() {
 
 start
 build_container
+# Re-run install from our fork (overrides the community-scripts hardcoded URL)
+lxc-attach -n "$CTID" -- bash -c "$(curl -fsSL "$INSTALL_SCRIPT_URL")"
 description
 
 msg_ok "Completed Successfully!\n"
