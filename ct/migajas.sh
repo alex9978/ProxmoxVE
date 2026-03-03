@@ -8,10 +8,10 @@ source <(curl -fsSL https://raw.githubusercontent.com/alex9978/ProxmoxVE/add-mig
 APP="Migajas"
 var_tags="${var_tags:-notes;privacy}"
 var_cpu="${var_cpu:-2}"
-var_ram="${var_ram:-2048}"
-var_disk="${var_disk:-10}"
-var_os="${var_os:-debian}"
-var_version="${var_version:-13}"
+var_ram="${var_ram:-1024}"
+var_disk="${var_disk:-4}"
+var_os="${var_os:-alpine}"
+var_version="${var_version:-3.23}"
 var_unprivileged="${var_unprivileged:-1}"
 
 # Override: point install script to our fork instead of community-scripts
@@ -42,7 +42,7 @@ function update_script() {
     msg_ok "Update available"
 
     msg_info "Stopping Service"
-    systemctl stop migajas
+    rc-service migajas stop
     msg_ok "Stopped Service"
 
     msg_info "Backing up Data"
@@ -55,7 +55,9 @@ function update_script() {
 
     msg_info "Building Backend"
     cd /opt/migajas/backend
-    $STD CGO_CFLAGS="-Wno-discarded-qualifiers" go build -o migajas-backend .
+    export CGO_CFLAGS="-Wno-discarded-qualifiers"
+    $STD go build -o migajas-backend .
+    unset CGO_CFLAGS
     msg_ok "Built Backend"
 
     msg_info "Building Frontend"
@@ -70,7 +72,7 @@ function update_script() {
     msg_ok "Restored Data"
 
     msg_info "Starting Service"
-    systemctl start migajas
+    rc-service migajas start
     msg_ok "Started Service"
     msg_ok "Updated successfully!"
   else

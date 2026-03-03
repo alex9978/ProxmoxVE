@@ -14,7 +14,7 @@ network_check
 update_os
 
 msg_info "Installing Dependencies"
-$STD apt-get install -y \
+$STD apk add --no-cache \
   gcc \
   git \
   make \
@@ -67,8 +67,8 @@ EOF
 msg_ok "Configured Migajas"
 
 msg_info "Configuring Nginx"
-rm -f /etc/nginx/sites-enabled/default
-cat <<EOF >/etc/nginx/conf.d/migajas.conf
+rm -f /etc/nginx/http.d/default.conf
+cat <<EOF >/etc/nginx/http.d/migajas.conf
 server {
     listen 80;
     server_name _;
@@ -90,28 +90,39 @@ server {
     }
 }
 EOF
-$STD systemctl restart nginx
+$STD rc-update add nginx default
+$STD rc-service nginx start
 msg_ok "Configured Nginx"
 
 msg_info "Creating Service"
-cat <<EOF >/etc/systemd/system/migajas.service
-[Unit]
-Description=Migajas Note-Taking App
-After=network.target
+cat <<EOF >/etc/init.d/migajas
+#!/sbin/openrc-run
 
-[Service]
-Type=simple
-User=root
-WorkingDirectory=/opt/migajas/backend
-EnvironmentFile=/opt/migajas/.env
-ExecStart=/opt/migajas/backend/migajas-backend
-Restart=on-failure
-RestartSec=5
+description="Migajas Note-Taking App"
 
-[Install]
-WantedBy=multi-user.target
+depend() {
+    need net
+}
+
+start() {
+    ebegin "Starting Migajas"
+    source /opt/migajas/.env
+    start-stop-daemon --start --background \\
+        --pidfile /run/migajas.pid --make-pidfile \\
+        --chdir /opt/migajas/backend \\
+        --exec /opt/migajas/backend/migajas-backend
+    eend \$?
+}
+
+stop() {
+    ebegin "Stopping Migajas"
+    start-stop-daemon --stop --pidfile /run/migajas.pid
+    eend \$?
+}
 EOF
-systemctl enable -q --now migajas
+chmod +x /etc/init.d/migajas
+$STD rc-update add migajas default
+$STD rc-service migajas start
 msg_ok "Created Service"
 
 motd_ssh
