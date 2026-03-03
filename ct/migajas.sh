@@ -1,5 +1,22 @@
 #!/usr/bin/env bash
 source <(curl -fsSL https://raw.githubusercontent.com/alex9978/ProxmoxVE/add-migajas/misc/build.func)
+
+# Override check_container_storage for BusyBox (Alpine) compatibility:
+# GNU df's --output flag is not available in BusyBox; use awk column parsing instead.
+check_container_storage() {
+  total_size=$(df /boot | awk 'NR==2 {print $2}')
+  local used_size=$(df /boot | awk 'NR==2 {print $3}')
+  usage=$((100 * used_size / total_size))
+  if ((usage > 80)); then
+    msg_warn "Storage is dangerously low (${usage}% used on /boot)"
+    echo -ne "Continue anyway? <y/N>  "
+    read -r prompt </dev/tty
+    if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
+      msg_error "Aborted: storage too low (${usage}% used)"
+      exit 114
+    fi
+  fi
+}
 # Copyright (c) 2021-2026 community-scripts ORG
 # Author: ultimoistante (ultimoistante)
 # License: MIT | https://github.com/community-scripts/ProxmoxVE/raw/main/LICENSE
@@ -62,7 +79,14 @@ function update_script() {
 
     msg_info "Building Frontend"
     cd /opt/migajas/frontend
-    $STD npm ci
+    $STD npm install @sveltejs/adapter-static
+    sed -i "s|@sveltejs/adapter-auto|@sveltejs/adapter-static|" svelte.config.js
+    sed -i "s|adapter()|adapter({ fallback: 'index.html' })|" svelte.config.js
+    cat <<EOF >/opt/migajas/frontend/src/routes/+layout.ts
+export const ssr = false;
+export const prerender = false;
+EOF
+    $STD npm install
     $STD npm run build
     msg_ok "Built Frontend"
 
