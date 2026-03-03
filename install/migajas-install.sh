@@ -21,7 +21,8 @@ $STD apk add --no-cache \
   musl-dev \
   nginx \
   nodejs \
-  npm
+  npm \
+  openssl
 msg_ok "Installed Dependencies"
 
 GO_VERSION="$(curl -fsSL https://go.dev/VERSION?m=text | head -1 | cut -c3-)" setup_go
