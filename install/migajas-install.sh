@@ -18,6 +18,7 @@ $STD apk add --no-cache \
   gcc \
   git \
   make \
+  musl-dev \
   nginx \
   nodejs \
   npm
