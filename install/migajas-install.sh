@@ -31,7 +31,9 @@ msg_ok "Cloned Migajas"
 
 msg_info "Building Backend"
 cd /opt/migajas/backend
-$STD CGO_CFLAGS="-Wno-discarded-qualifiers" go build -o migajas-backend .
+export CGO_CFLAGS="-Wno-discarded-qualifiers"
+$STD go build -o migajas-backend .
+unset CGO_CFLAGS
 msg_ok "Built Backend"
 
 msg_info "Building Frontend"
