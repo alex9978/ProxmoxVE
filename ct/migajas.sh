@@ -3,12 +3,19 @@ source <(curl -fsSL https://raw.githubusercontent.com/alex9978/ProxmoxVE/add-mig
 
 # Override check_container_storage for BusyBox (Alpine) compatibility:
 # GNU df's --output flag is not available in BusyBox; use awk column parsing instead.
+# Also falls back to / when /boot is not a separate mount point (Alpine LXC).
 check_container_storage() {
-  total_size=$(df /boot | awk 'NR==2 {print $2}')
-  local used_size=$(df /boot | awk 'NR==2 {print $3}')
+  local check_path
+  if mountpoint -q /boot 2>/dev/null; then
+    check_path="/boot"
+  else
+    check_path="/"
+  fi
+  total_size=$(df "$check_path" | awk 'NR==2 {print $2}')
+  local used_size=$(df "$check_path" | awk 'NR==2 {print $3}')
   usage=$((100 * used_size / total_size))
   if ((usage > 80)); then
-    msg_warn "Storage is dangerously low (${usage}% used on /boot)"
+    msg_warn "Storage is dangerously low (${usage}% used on ${check_path})"
     echo -ne "Continue anyway? <y/N>  "
     read -r prompt </dev/tty
     if [[ ! ${prompt,,} =~ ^(y|yes)$ ]]; then
