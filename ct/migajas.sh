@@ -6,11 +6,7 @@ source <(curl -fsSL https://raw.githubusercontent.com/alex9978/ProxmoxVE/add-mig
 # Also falls back to / when /boot is not a separate mount point (Alpine LXC).
 check_container_storage() {
   local check_path
-  if mountpoint -q /boot 2>/dev/null; then
-    check_path="/boot"
-  else
-    check_path="/"
-  fi
+  df /boot >/dev/null 2>&1 && check_path="/boot" || check_path="/"
   total_size=$(df "$check_path" | awk 'NR==2 {print $2}')
   local used_size=$(df "$check_path" | awk 'NR==2 {print $3}')
   usage=$((100 * used_size / total_size))
