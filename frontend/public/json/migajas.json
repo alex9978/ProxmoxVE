@@ -1,0 +1,42 @@
+{
+  "name": "Migajas",
+  "slug": "migajas",
+  "categories": [12],
+  "date_created": "2026-03-03",
+  "type": "ct",
+  "updateable": true,
+  "privileged": false,
+  "interface_port": 80,
+  "documentation": "https://github.com/ultimoistante/migajas#readme",
+  "website": "https://github.com/ultimoistante/migajas",
+  "logo": "https://raw.githubusercontent.com/ultimoistante/migajas/main/images/logo_big.svg",
+  "config_path": "/opt/migajas/.env",
+  "description": "A privacy-focused, multi-user note-taking app with a Go backend and SvelteKit frontend. Features rich text editing, secret notes with AES-256-GCM encryption, file attachments, voice memos, and multi-user support with JWT authentication.",
+  "install_methods": [
+    {
+      "type": "default",
+      "script": "ct/migajas.sh",
+      "resources": {
+        "cpu": 2,
+        "ram": 2048,
+        "hdd": 10,
+        "os": "Debian",
+        "version": "13"
+      }
+    }
+  ],
+  "default_credentials": {
+    "username": null,
+    "password": null
+  },
+  "notes": [
+    {
+      "text": "On first access, you will be prompted to create the admin account via the setup wizard.",
+      "type": "info"
+    },
+    {
+      "text": "Self-registration is disabled by default. Enable it via the admin panel or by setting ALLOW_SELF_REGISTRATION=true in /opt/migajas/.env",
+      "type": "info"
+    }
+  ]
+}
